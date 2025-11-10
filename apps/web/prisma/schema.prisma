@@ -1,0 +1,248 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// News Sources
+// ============================================
+
+model Source {
+  id          String   @id @default(cuid())
+  name        String   // e.g., "Reuters", "CNBC"
+  type        String   // "rss", "api", "scraper"
+  url         String   // Feed URL or API endpoint
+  trustScore  Float    @default(0.5) @map("trust_score") // 0.0-1.0
+  ttlMin      Int      @default(60) @map("ttl_min") // Time-to-live in minutes
+  status      String   @default("active") // "active", "degraded", "inactive"
+  
+  // Health tracking
+  consecutiveFailures Int      @default(0) @map("consecutive_failures")
+  lastFetchAt         DateTime? @map("last_fetch_at")
+  lastSuccessAt       DateTime? @map("last_success_at")
+  
+  // Metadata
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  articles Article[]
+  
+  @@map("sources")
+  @@index([status])
+}
+
+// ============================================
+// Articles
+// ============================================
+
+model Article {
+  id           String   @id @default(cuid())
+  sourceId     String   @map("source_id")
+  
+  // Identifiers
+  guid         String   // Original GUID from source
+  canonicalUrl String   @map("canonical_url") // Normalized URL
+  contentHash  String   @map("content_hash") // SHA256 hash for deduplication
+  
+  // Content
+  title        String
+  summaryRaw   String?  @map("summary_raw") @db.Text // Original excerpt/description
+  summary2     String?  @map("summary_2") @db.Text // Generated 2-sentence summary
+  content      String?  @db.Text // Full article content (if scraped)
+  
+  // Metadata
+  tsPublished  DateTime @map("ts_published")
+  author       String?
+  imageUrl     String?  @map("image_url")
+  
+  // NLP extracted data (stored as JSONB)
+  symbols      Json?    // ["AAPL", "2330.TW"]
+  topics       Json?    // ["AI", "Semiconductors"]
+  entities     Json?    // Extracted entities
+  
+  // Clustering
+  clusterId    String?  @map("cluster_id")
+  simhash      String?  // SimHash for similarity detection
+  
+  // Timestamps
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  source  Source   @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  cluster Cluster? @relation(fields: [clusterId], references: [id])
+  
+  @@unique([sourceId, guid])
+  @@unique([contentHash])
+  @@map("articles")
+  @@index([tsPublished])
+  @@index([clusterId])
+  @@index([sourceId])
+}
+
+// ============================================
+// Article Clusters (for deduplication)
+// ============================================
+
+model Cluster {
+  id              String   @id @default(cuid())
+  
+  // Representative article (highest trust + longest content)
+  repArticleId    String?  @map("rep_article_id")
+  
+  // Similarity metrics
+  simAvg          Float?   @map("sim_avg") // Average similarity in cluster
+  simMax          Float?   @map("sim_max") // Max similarity in cluster
+  
+  // Metadata
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  articles Article[]
+  
+  @@map("clusters")
+}
+
+// ============================================
+// Users (Newsletter subscribers)
+// ============================================
+
+model User {
+  id              String   @id @default(cuid())
+  email           String   @unique
+  name            String?
+  
+  // Preferences
+  watchlistSymbols Json?   @map("watchlist_symbols") // ["AAPL", "2330.TW"]
+  topics           Json?   // ["AI", "Taiwan"]
+  
+  // Subscription status
+  isActive        Boolean  @default(true) @map("is_active")
+  unsubscribedAt  DateTime? @map("unsubscribed_at")
+  
+  // Bounce tracking
+  bounceCount     Int      @default(0) @map("bounce_count")
+  lastBounceAt    DateTime? @map("last_bounce_at")
+  
+  // Timestamps
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  issues IssueDelivery[]
+  
+  @@map("users")
+  @@index([email])
+  @@index([isActive])
+}
+
+// ============================================
+// Newsletter Issues (Daily editions)
+// ============================================
+
+model Issue {
+  id              String   @id @default(cuid())
+  
+  // Issue metadata
+  issueDate       DateTime @map("issue_date") @db.Date // YYYY-MM-DD
+  subject         String   // Email subject line
+  
+  // Content (stored as JSONB)
+  articleIds      Json     @map("article_ids") // Array of article IDs included
+  htmlContent     String?  @map("html_content") @db.Text // Rendered HTML
+  
+  // Metrics
+  totalSent       Int      @default(0) @map("total_sent")
+  totalOpened     Int      @default(0) @map("total_opened")
+  totalClicked    Int      @default(0) @map("total_clicked")
+  totalBounced    Int      @default(0) @map("total_bounced")
+  
+  // Timestamps
+  sentAt          DateTime? @map("sent_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+  
+  // Relations
+  deliveries IssueDelivery[]
+  
+  @@unique([issueDate])
+  @@map("issues")
+  @@index([issueDate])
+}
+
+// ============================================
+// Issue Deliveries (Per-user tracking)
+// ============================================
+
+model IssueDelivery {
+  id              String   @id @default(cuid())
+  issueId         String   @map("issue_id")
+  userId          String   @map("user_id")
+  
+  // Delivery status
+  status          String   @default("pending") // "pending", "sent", "bounced", "failed"
+  
+  // Engagement tracking
+  openedAt        DateTime? @map("opened_at")
+  clickedAt       DateTime? @map("clicked_at")
+  
+  // Error tracking
+  errorMessage    String?  @map("error_message")
+  
+  // Timestamps
+  sentAt          DateTime? @map("sent_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+  
+  // Relations
+  issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([issueId, userId])
+  @@map("issue_deliveries")
+  @@index([userId])
+  @@index([status])
+}
+
+// ============================================
+// Job Queue (SQLite-based async processing)
+// ============================================
+
+model Job {
+  id              String   @id @default(cuid())
+  
+  // Job metadata
+  type            String   // "dedupe", "summarize", "ner", "send_newsletter"
+  status          String   @default("pending") // "pending", "processing", "completed", "failed"
+  
+  // Payload (stored as JSONB)
+  payload         Json     // Job-specific data
+  
+  // Result
+  result          Json?    // Job result (if any)
+  errorMessage    String?  @map("error_message")
+  
+  // Retry logic
+  attempts        Int      @default(0)
+  maxAttempts     Int      @default(3) @map("max_attempts")
+  
+  // Scheduling
+  scheduledFor    DateTime @default(now()) @map("scheduled_for")
+  startedAt       DateTime? @map("started_at")
+  completedAt     DateTime? @map("completed_at")
+  
+  // Timestamps
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  
+  @@map("jobs")
+  @@index([type, status])
+  @@index([scheduledFor])
+}

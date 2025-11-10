@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "nlp-py"
+version = "0.1.0"
+description = "NLP and deduplication workers for MorningPulse newsletter"
+authors = ["MorningPulse Team"]
+readme = "README.md"
+packages = [{include = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+spacy = "^3.7.0"
+datasketch = "^1.6.0"
+psycopg2-binary = "^2.9.0"
+structlog = "^24.1.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.0"
+black = "^24.0.0"
+mypy = "^1.8.0"
+ruff = "^0.2.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 100
+target-version = ['py311']
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

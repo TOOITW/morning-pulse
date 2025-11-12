@@ -21,9 +21,17 @@ function contentHash(input: { canonicalUrl?: string | null; title?: string | nul
 export async function upsertArticle(input: UpsertArticleInput) {
   const hash = contentHash({ canonicalUrl: input.canonicalUrl, title: input.title });
 
-  // Dedupe by contentHash
-  const existing = await prisma.article.findFirst({ where: { contentHash: hash } });
-  if (existing) return existing;
+  // Prefer dedupe by (sourceId,guid) when guid is available
+  if (input.guid) {
+    const byGuid = await prisma.article.findFirst({
+      where: { sourceId: input.sourceId, guid: input.guid },
+    });
+    if (byGuid) return byGuid;
+  }
+
+  // Fallback dedupe by contentHash
+  const byHash = await prisma.article.findFirst({ where: { contentHash: hash } });
+  if (byHash) return byHash;
 
   // Prisma schema requires non-null guid/canonicalUrl/tsPublished; fallback to placeholders
   const guid = input.guid || input.canonicalUrl || hash;

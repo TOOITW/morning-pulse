@@ -28,8 +28,9 @@ ENV/
 *.sqlite3
 
 # Environment variables
-.env
-.env*.local
+# Ignore all env files by default but keep the sample tracked
+.env*
+!.env.example
 
 # IDE
 .vscode/
@@ -51,5 +52,8 @@ yarn-error.log*
 
 # Misc
 .turbo/
+**/.turbo/
+COMMIT_MESSAGE.md
+debug.txt
 dist/
 tmp/

@@ -4,7 +4,46 @@
  */
 
 import Parser from 'rss-parser';
-import { retryWithBackoff } from '../utils/retry';
+
+// Retry with exponential backoff
+interface BackoffOptions {
+  maxRetries?: number;
+  initialDelay?: number;
+  maxDelay?: number;
+  factor?: number;
+  jitter?: boolean;
+}
+
+async function retryWithBackoff<T>(fn: () => Promise<T>, options: BackoffOptions = {}): Promise<T> {
+  const {
+    maxRetries = 3,
+    initialDelay = 1000,
+    maxDelay = 10000,
+    factor = 2,
+    jitter = true,
+  } = options;
+
+  let attempt = 0;
+  let delay = initialDelay;
+  let lastError: unknown;
+
+  while (attempt <= maxRetries) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastError = err;
+      if (attempt === maxRetries) break;
+
+      const jitterAmount = jitter ? Math.random() * delay * 0.5 : 0;
+      const wait = Math.min(maxDelay, delay + jitterAmount);
+      await new Promise((resolve) => setTimeout(resolve, wait));
+      delay = Math.min(maxDelay, delay * factor);
+      attempt++;
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error(String(lastError));
+}
 
 export interface RSSItem {
   guid: string;

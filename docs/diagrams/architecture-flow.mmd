@@ -1,0 +1,53 @@
+flowchart TD
+  subgraph SCHED[Scheduler]
+    A["0 * * * *\nHourly RSS Ingest"]
+    B["0 7 * * *\nDaily Newsletter Build/Send"]
+    C["*/10 * * * *\n(Opt) Job Cleanup"]
+  end
+
+  subgraph INGEST[Ingestion]
+    A --> D["Create ingest job"]
+    D --> E["RSS Adapter fetch (ETag/LM)"]
+    E -->|ok| F["Upsert Articles"]
+    E -->|fail| G["Update Source health + backoff"]
+    F --> H["Enqueue dedupe jobs"]
+  end
+
+  subgraph DEDUPE[Dedup/Cluster]
+    H --> I["MinHash + LSH candidates"]
+    I --> J["SimHash 64-bit"]
+    J --> K{"Near-dup?"}
+    K -->|Yes| L["Assign to Cluster"]
+    K -->|No| M["Create new Cluster"]
+    L --> N["Enqueue summarize"]
+    M --> N
+  end
+
+  subgraph SUMM[Summarization]
+    N --> O["Select sentences + numeric check"]
+    O --> P["Write summary_2"]
+  end
+
+  subgraph BUILD[Issue Build]
+    B --> Q["Pick candidates by freshness/trust"]
+    Q --> R["Rank & Filter (diversity)"]
+    R --> S["Create Issue + deliveries"]
+  end
+
+  subgraph SEND[Render & Send]
+    S --> T["MJML -> HTML"]
+    T --> U["SMTP/Resend send"]
+    U --> V["Record delivery status"]
+  end
+
+  subgraph CLEAN[Maintenance]
+    C --> W["Purge stale/failed jobs (policy)"]
+  end
+
+  classDef good fill:#E3FCEF,stroke:#34C759,stroke-width:1px,color:#000
+  classDef warn fill:#FFF7E6,stroke:#FF9F0A,stroke-width:1px,color:#000
+  classDef bad fill:#FFECEC,stroke:#FF3B30,stroke-width:1px,color:#000
+
+  class E good
+  class G warn
+  class W warn

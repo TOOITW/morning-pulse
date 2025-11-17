@@ -32,11 +32,7 @@ export interface NewsletterData {
  * Load MJML template from file
  */
 function loadTemplate(templateName: string): string {
-  const templatePath = join(
-    process.cwd(),
-    'src/lib/email/templates',
-    `${templateName}.mjml`
-  );
+  const templatePath = join(process.cwd(), 'src/lib/email/templates', `${templateName}.mjml`);
 
   try {
     return readFileSync(templatePath, 'utf-8');
@@ -52,36 +48,34 @@ function loadTemplate(templateName: string): string {
 /**
  * Simple Handlebars-like template replacement
  */
-function renderTemplate(template: string, data: Record<string, any>): string {
+function renderTemplate(template: string, data: NewsletterData): string {
   let rendered = template;
 
   // Replace simple variables {{variable}}
-  Object.keys(data).forEach((key) => {
+  (Object.keys(data) as (keyof NewsletterData)[]).forEach((key) => {
     if (key !== 'articles') {
       const value = data[key];
-      const regex = new RegExp(`{{${key}}}`, 'g');
-      rendered = rendered.replace(regex, value);
+      const regex = new RegExp(`{{${String(key)}}}`, 'g');
+      rendered = rendered.replace(regex, String(value));
     }
   });
 
   // Handle articles array {{#each articles}}...{{/each}}
-  const articlesMatch = rendered.match(
-    /{{#each articles}}([\s\S]*?){{\/each}}/
-  );
+  const articlesMatch = rendered.match(/{{#each articles}}([\s\S]*?){{\/each}}/);
 
   if (articlesMatch) {
     const articleTemplate = articlesMatch[1];
-    const articles = data.articles || [];
+    const articles: ArticleForEmail[] = data.articles || [];
 
     const articlesHtml = articles
-      .map((article: Record<string, any>) => {
+      .map((article: ArticleForEmail) => {
         let articleHtml = articleTemplate;
 
         // Replace article properties
-        Object.keys(article).forEach((key) => {
-          const value = article[key] || '';
-          const regex = new RegExp(`{{this\\.${key}}}`, 'g');
-          articleHtml = articleHtml.replace(regex, value);
+        (Object.keys(article) as (keyof ArticleForEmail)[]).forEach((key) => {
+          const value = article[key] ?? '';
+          const regex = new RegExp(`{{this\\.${String(key)}}}`, 'g');
+          articleHtml = articleHtml.replace(regex, String(value));
         });
 
         return articleHtml;
@@ -97,14 +91,10 @@ function renderTemplate(template: string, data: Record<string, any>): string {
 /**
  * Convert Article to ArticleForEmail format
  */
-export function formatArticleForEmail(
-  article: Article & { source: Source }
-): ArticleForEmail {
+export function formatArticleForEmail(article: Article & { source: Source }): ArticleForEmail {
   const publishedDate = new Date(article.tsPublished);
   const now = new Date();
-  const hoursAgo = Math.floor(
-    (now.getTime() - publishedDate.getTime()) / (1000 * 60 * 60)
-  );
+  const hoursAgo = Math.floor((now.getTime() - publishedDate.getTime()) / (1000 * 60 * 60));
 
   let publishedTime: string;
   if (hoursAgo < 1) {
@@ -155,8 +145,7 @@ export function renderDailyNewsletter(
       year: 'numeric',
     }),
     marketOverview:
-      marketOverview ||
-      'Markets showed mixed performance today. Stay tuned for detailed analysis.',
+      marketOverview || 'Markets showed mixed performance today. Stay tuned for detailed analysis.',
     articles: articles.map(formatArticleForEmail),
     preferencesUrl: userId
       ? `${process.env.APP_URL}/preferences?userId=${userId}`

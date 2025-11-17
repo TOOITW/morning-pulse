@@ -3,6 +3,7 @@
  * Logs key metrics for monitoring (replaces Grafana)
  */
 
+import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -92,7 +93,7 @@ async function getArticleIngestionMetrics() {
 }
 
 async function getDeduplicationMetrics() {
-  const [totalClusters, totalArticles, clusterSizes] = await Promise.all([
+  const [totalClusters, totalArticles] = await Promise.all([
     prisma.cluster.count(),
     prisma.article.count({
       where: {
@@ -101,14 +102,10 @@ async function getDeduplicationMetrics() {
         },
       },
     }),
-    prisma.cluster.aggregate({
-      _avg: {
-        articleCount: true,
-      },
-    }),
   ]);
 
-  const avgClusterSize = clusterSizes._avg.articleCount || 0;
+  const avgClusterSize =
+    totalClusters > 0 ? totalArticles / totalClusters : 0;
   const duplicateRate =
     totalArticles > 0 ? ((totalArticles - totalClusters) / totalArticles) * 100 : 0;
 

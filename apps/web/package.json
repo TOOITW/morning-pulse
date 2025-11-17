@@ -11,28 +11,31 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@prisma/client": "^6.0.0",
+    "mjml": "^4.15.0",
+    "next": "16.0.1",
+    "node-cron": "^3.0.3",
+    "nodemailer": "^6.9.0",
+    "prisma": "^6.0.0",
+    "punycode": "^2.3.1",
     "react": "19.2.0",
     "react-dom": "19.2.0",
-    "next": "16.0.1",
-    "prisma": "^6.0.0",
-    "@prisma/client": "^6.0.0",
     "rss-parser": "^3.13.0",
     "winston": "^3.11.0",
-    "winston-daily-rotate-file": "^4.7.1",
-    "mjml": "^4.15.0",
-    "nodemailer": "^6.9.0",
-    "node-cron": "^3.0.3"
+    "winston-daily-rotate-file": "^4.7.1"
   },
   "devDependencies": {
-    "babel-plugin-react-compiler": "1.0.0",
-    "typescript": "^5",
+    "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4",
+    "@vitest/coverage-v8": "^1.6.1",
+    "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.0.1",
-    "prettier": "^3.3.0"
+    "prettier": "^3.3.0",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vitest": "^1.6.0"
   }
 }

@@ -24,16 +24,16 @@
 
 **Purpose**: Project initialization and basic structure (免費版本)
 
-- [ ] T001 Create monorepo structure with workspace configuration in package.json
-- [ ] T002 Initialize Next.js app in apps/web/ with TypeScript and App Router
-- [ ] T003 [P] Initialize Python project in services/nlp-py/ with pyproject.toml and virtual environment
-- [ ] T004 [P] Configure Docker Compose for local development (PostgreSQL only) in docker-compose.yml
-- [ ] T005 Create Prisma schema in apps/web/prisma/schema.prisma with base tables (sources, articles, clusters, users, issues, jobs)
-- [ ] T006 Run Prisma migration to initialize PostgreSQL schema
-- [ ] T007 [P] Configure ESLint and Prettier for TypeScript in apps/web/
-- [ ] T008 [P] Configure Black and mypy for Python in services/nlp-py/
-- [ ] T009 [P] Setup GitHub Actions CI workflow in .github/workflows/ci.yml (lint, typecheck, test) - OPTIONAL
-- [ ] T010 [P] Configure environment variables template in .env.example (DB connection, email credentials, API keys)
+- [x] T001 Create monorepo structure with workspace configuration in package.json
+- [x] T002 Initialize Next.js app in apps/web/ with TypeScript and App Router
+- [x] T003 [P] Initialize Python project in services/nlp-py/ with pyproject.toml and virtual environment
+- [x] T004 [P] Configure Docker Compose for local development (PostgreSQL only) in docker-compose.yml
+- [x] T005 Create Prisma schema in apps/web/prisma/schema.prisma with base tables (sources, articles, clusters, users, issues, jobs)
+- [x] T006 Run Prisma migration to initialize PostgreSQL schema
+- [x] T007 [P] Configure ESLint and Prettier for TypeScript in apps/web/
+- [x] T008 [P] Configure Black and mypy for Python in services/nlp-py/
+- [x] T009 [P] Setup GitHub Actions CI workflow in .github/workflows/ci.yml (lint, typecheck, test) - OPTIONAL
+- [x] T010 [P] Configure environment variables template in .env.example (DB connection, email credentials, API keys)
 
 **Checkpoint**: Development environment ready - can run `docker-compose up`, Prisma client generates types
 
@@ -45,16 +45,16 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T011 Create Source model in apps/web/src/lib/db/models.ts with fields: id, name, type, url, trust_score, ttl_min, status
-- [ ] T012 Create Article model in apps/web/src/lib/db/models.ts with fields: id, source_id, guid, canonical_url, content_hash, title, ts_published, summary_raw, symbols, topics, cluster_id
-- [ ] T013 [P] Implement database connection helper in apps/web/src/lib/db/client.ts using Prisma
+- [x] T011 Create Source model in apps/web/src/lib/db/models.ts with fields: id, name, type, url, trust_score, ttl_min, status — replaced by Prisma schema (apps/web/prisma/schema.prisma)
+- [x] T012 Create Article model in apps/web/src/lib/db/models.ts with fields: id, source_id, guid, canonical_url, content_hash, title, ts_published, summary_raw, symbols, topics, cluster_id — replaced by Prisma schema (apps/web/prisma/schema.prisma)
+- [x] T013 [P] Implement database connection helper in apps/web/src/lib/db/client.ts using Prisma — covered via PrismaClient usage (path differs)
 - [ ] T014 [P] Implement URL normalization utility in apps/web/src/lib/utils/url.ts (remove UTM params, follow redirects, extract canonical)
 - [ ] T015 [P] Implement content hash generator in apps/web/src/lib/utils/hash.ts (SHA256 of canonical URL + stripped title)
 - [ ] T016 Implement RSS adapter interface in apps/web/src/lib/ingest/rss-adapter.ts using rss-parser with ETag/Last-Modified support
 - [ ] T017 [P] Implement HTTP retry logic with exponential backoff in apps/web/src/lib/utils/retry.ts for 429/5xx errors
 - [ ] T018 [P] Create source health tracking service in apps/web/src/lib/services/source-health.ts (consecutive failure counter, degraded marking)
-- [ ] T019 [P] Setup structured logging in apps/web/src/lib/observability/logger.ts with Winston/Pino (取代 OpenTelemetry)
-- [ ] T020 [P] Setup structured logging in services/nlp-py/src/lib/logger.py with structlog
+- [x] T019 [P] Setup structured logging in apps/web/src/lib/observability/logger.ts with Winston/Pino (取代 OpenTelemetry)
+- [x] T020 [P] Setup structured logging in services/nlp-py/src/lib/logger.py with structlog
 - [ ] T021 [P] Implement simple job queue (SQLite-based) in apps/web/src/lib/queue/job-queue.ts (取代 SQS)
 - [ ] T022 [P] Implement job processor base class in services/nlp-py/src/lib/job_processor.py (取代 SQS consumer)
 - [ ] T023 [P] Setup PostgreSQL connection in services/nlp-py/src/lib/db.py using psycopg2 with connection pooling
@@ -83,14 +83,14 @@
 - [ ] T033 [US1] Create job handler for summarization tasks in services/nlp-py/src/workers/summarizer.py
 - [ ] T034 [P] [US1] Implement basic ranking algorithm in apps/web/src/lib/ranking/scorer.ts: score = 0.35×Recency + 0.25×SourceTrust + 0.25×Relevance + 0.15×Heat
 - [ ] T035 [P] [US1] Implement filtering guardrails in apps/web/src/lib/ranking/filter.ts (SourceTrust <0.4, same source max 3, same cluster only 1)
-- [ ] T036 [P] [US1] Create MJML email template in apps/web/src/lib/email/templates/daily-newsletter.mjml with sections: Market Overview, Top Stories (5-8 cards)
-- [ ] T037 [US1] Implement MJML to HTML compilation in apps/web/src/lib/email/renderer.ts
-- [ ] T038 [P] [US1] Implement Nodemailer sender in apps/web/src/lib/email/nodemailer-sender.ts with Gmail SMTP or Resend.com integration (取代 AWS SES)
+- [x] T036 [P] [US1] Create MJML email template in apps/web/src/lib/email/templates/daily-newsletter.mjml with sections: Market Overview, Top Stories (5-8 cards)
+- [x] T037 [US1] Implement MJML to HTML compilation in apps/web/src/lib/email/renderer.ts — implemented inline in /app/api/preview-newsletter (consider extracting renderer.ts)
+- [ ] T038 [P] [US1] Implement Nodemailer sender in apps/web/src/lib/email/nodemailer-sender.ts with Gmail SMTP or Resend.com integration (取代 AWS SES) — partially available via /app/api/send-test-email (Ethereal/Gmail), Resend pending
 - [ ] T039 [US1] Create bounce/complaint webhook handler in apps/web/src/app/api/email-webhook/route.ts (hard bounce → immediate unsub, soft ×3 → unsub)
 - [ ] T040 [US1] Implement newsletter generation pipeline in apps/web/src/lib/services/newsletter-builder.ts (fetch ranked articles → render MJML → send via Nodemailer)
 - [ ] T041 [US1] Create node-cron scheduled job in apps/web/src/lib/scheduler/cron-jobs.ts to trigger newsletter at 7:30 AM Taipei time (取代 EventBridge)
 - [ ] T042 [US1] Implement idempotency check in newsletter service (query issues table to ensure not already sent today)
-- [ ] T043 [P] [US1] Create simple metrics logging in scripts/ops/metrics-logger.ts for: source health, article ingestion rate, deduplication metrics, email delivery rate (取代 Grafana)
+- [x] T043 [P] [US1] Create simple metrics logging in scripts/ops/metrics-logger.ts for: source health, article ingestion rate, deduplication metrics, email delivery rate (取代 Grafana) — basic version present
 - [ ] T044 [US1] Add structured log events for all pipeline stages: ingest, normalize, dedupe, nlp, rank, build, send with correlation_id
 
 **Checkpoint**: At this point, User Story 1 should be fully functional - daily newsletter sends at 7:30 AM with deduplicated, summarized articles
@@ -106,8 +106,8 @@
 ### Implementation for User Story 4
 
 - [ ] T045 [P] [US4] Add trust_score initialization script in scripts/etl/seed-sources.ts with initial scores for Reuters (0.9), CNBC (0.8), Yahoo Finance (0.7)
-- [ ] T046 [P] [US4] Update MJML template in apps/web/src/lib/email/templates/daily-newsletter.mjml to include prominent source name in article cards
-- [ ] T047 [P] [US4] Ensure original article URL is clickable in email template
+- [x] T046 [P] [US4] Update MJML template in apps/web/src/lib/email/templates/daily-newsletter.mjml to include prominent source name in article cards
+- [x] T047 [P] [US4] Ensure original article URL is clickable in email template
 - [ ] T048 [US4] Verify filtering logic in apps/web/src/lib/ranking/filter.ts excludes sources with trust_score < 0.4 from top 8 articles
 
 **Checkpoint**: User Story 4 complete - newsletter displays source names, links to originals, filters low-credibility sources
@@ -277,6 +277,29 @@ This delivers: Daily newsletter at 7:30 AM with deduplicated articles, summaries
 
 **Full V1 = All user stories + compliance**
 - All phases (T001-T090)
+
+---
+
+## New Added Tasks (Post-initial corrections)
+
+These tasks were implemented or planned after the original list. IDs use prefix NA (New Added) to avoid reindexing existing tasks.
+
+- [x] NA01 [P] Create preview newsletter API in `apps/web/app/api/preview-newsletter/route.ts` (MJML inline render, mock data initially)
+- [x] NA02 [P] Create test email API in `apps/web/app/api/send-test-email/route.ts` (Ethereal fallback + Gmail SMTP/OAuth2 partial support)
+- [ ] NA03 [P] Extract MJML renderer into `apps/web/src/lib/email/renderer.ts` (refactor NA01 inline logic)
+- [ ] NA04 [P] Integrate Resend provider in `apps/web/src/lib/email/providers/resend-sender.ts` (RESEND_API_KEY, fallback to existing)
+- [ ] NA05 [P] Replace mock articles in preview API with DB query once ingestion ready
+- [ ] NA06 [P] Add RSS ingest adapter in `apps/web/src/lib/ingest/rss-adapter.ts` (generic fetch using rss-parser)
+- [ ] NA07 [P] Add articles repository with upsert logic in `apps/web/src/lib/db/repositories/articles.ts` (dedupe via content_hash)
+- [ ] NA08 [P] Add manual ingest script `scripts/etl/fetch-articles.ts` (load active sources → adapter → upsert)
+- [ ] NA09 [P] Add basic ranking stub in `apps/web/src/lib/ranking/scorer.ts` (recency + trust only initial)
+- [ ] NA10 [P] Add Issue builder service `apps/web/src/lib/services/issue-builder.ts` (select N articles → render → persist Issue + HTML)
+- [ ] NA11 [P] Add `/api/issues/today` endpoint for retrieving today’s Issue (idempotency check)
+- [ ] NA12 [P] Add Resend/Gmail mode doc section in README (Email Modes: Ethereal/Gmail OAuth2/Resend operations)
+- [ ] NA13 [P] Remove deprecated duplicate `apps/web/src/app/` directory remnants (structural cleanup)
+- [ ] NA14 [P] Add minimal unit tests (renderer snapshot, hash util, ingest upsert) in `apps/web/tests/`
+
+---
 
 ---
 

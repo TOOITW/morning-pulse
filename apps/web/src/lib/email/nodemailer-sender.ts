@@ -36,7 +36,7 @@ function getTransporter(): Transporter {
 
   if (emailProvider === 'resend') {
     // Resend.com configuration
-    transporterInstance = nodemailer.createTransporter({
+    transporterInstance = nodemailer.createTransport({
       host: 'smtp.resend.com',
       port: 465,
       secure: true,
@@ -49,7 +49,7 @@ function getTransporter(): Transporter {
     logInfo('Email transporter initialized', { provider: 'resend' });
   } else {
     // Gmail SMTP configuration
-    transporterInstance = nodemailer.createTransporter({
+    transporterInstance = nodemailer.createTransport({
       service: 'gmail',
       auth: {
         user: process.env.GMAIL_USER,
@@ -66,18 +66,13 @@ function getTransporter(): Transporter {
 /**
  * Send email via Nodemailer
  */
-export async function sendEmail(
-  options: EmailOptions
-): Promise<SendResult> {
+export async function sendEmail(options: EmailOptions): Promise<SendResult> {
   const { to, subject, html, text, from, replyTo } = options;
 
   try {
     const transporter = getTransporter();
 
-    const fromAddress =
-      from ||
-      process.env.EMAIL_FROM ||
-      'MorningPulse <noreply@morningpulse.com>';
+    const fromAddress = from || process.env.EMAIL_FROM || 'MorningPulse <noreply@morningpulse.com>';
 
     logInfo('Sending email', {
       to: Array.isArray(to) ? to.length : 1,

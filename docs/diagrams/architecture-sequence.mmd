@@ -1,0 +1,35 @@
+sequenceDiagram
+    autonumber
+    participant Cron as Cron Scheduler
+    participant RSS as RSS Ingest Service (TS)
+    participant Adapter as RSS Adapter
+    participant DB as Postgres/Prisma
+    participant Dedupe as Deduplicator Worker (Py)
+    participant Summ as Summarizer Worker (Py)
+    participant Rank as Ranking & Filter (TS)
+    participant Build as Newsletter Builder (TS)
+    participant Render as MJML Renderer
+    participant Send as Email Sender
+    participant User as User Mailbox
+
+    Cron->>RSS: Hourly ingest job
+    RSS->>Adapter: Fetch feeds (ETag / Last-Modified)
+    Adapter-->>RSS: Raw articles
+    RSS->>DB: Upsert new articles
+    RSS->>DB: Enqueue dedupe jobs
+    Dedupe->>DB: Fetch pending articles
+    Dedupe->>DB: Update clusters + simhash
+    Dedupe->>DB: Enqueue summarize jobs
+    Summ->>DB: Fetch articles needing summary
+    Summ->>DB: Write summary_2
+    Cron->>Build: Daily newsletter (07:30)
+    Build->>DB: Select candidate articles
+    Build->>Rank: Rank & filter set
+    Rank-->>Build: Top N curated list
+    Build->>Render: Build MJML template
+    Render-->>Build: HTML result
+    Build->>Send: Send issue emails
+    Send->>DB: Record deliveries
+    Send-->>User: Email arrives
+    Note over RSS,Dedupe: Workers run until queue empty
+    Note over Build,Send: Idempotent by issueDate

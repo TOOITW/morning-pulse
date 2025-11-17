@@ -27,16 +27,10 @@ export function filterArticles(
   articles: (Article & { source: Source })[],
   options: FilteringOptions = {}
 ): FilterResult {
-  const {
-    minTrustScore = 0.4,
-    maxPerSource = 3,
-    maxPerCluster = 1,
-    maxTotal = 8,
-  } = options;
+  const { minTrustScore = 0.4, maxPerSource = 3, maxPerCluster = 1, maxTotal = 8 } = options;
 
   const included: (Article & { source: Source })[] = [];
-  const excluded: { article: Article & { source: Source }; reason: string }[] =
-    [];
+  const excluded: { article: Article & { source: Source }; reason: string }[] = [];
 
   const sourceCount = new Map<string, number>();
   const clusterCount = new Map<string, number>();
@@ -116,9 +110,10 @@ export function getTopArticles(
 /**
  * Validate filtering configuration
  */
-export function validateFilteringOptions(
-  options: FilteringOptions
-): { valid: boolean; errors: string[] } {
+export function validateFilteringOptions(options: FilteringOptions): {
+  valid: boolean;
+  errors: string[];
+} {
   const errors: string[] = [];
 
   if (options.minTrustScore !== undefined) {

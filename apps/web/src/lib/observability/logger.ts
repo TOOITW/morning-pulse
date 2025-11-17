@@ -18,9 +18,7 @@ const logFormat = winston.format.combine(
         winston.format.colorize(),
         winston.format.printf(({ timestamp, level, message, metadata }) => {
           const meta = metadata as Record<string, unknown>;
-          const metaStr = Object.keys(meta).length
-            ? `\n${JSON.stringify(meta, null, 2)}`
-            : '';
+          const metaStr = Object.keys(meta).length ? `\n${JSON.stringify(meta, null, 2)}` : '';
           return `[${timestamp}] ${level}: ${message}${metaStr}`;
         })
       )
@@ -89,11 +87,7 @@ export const logInfo = (message: string, context?: Record<string, unknown>) =>
 export const logWarn = (message: string, context?: Record<string, unknown>) =>
   logger.warn(message, context);
 
-export const logError = (
-  message: string,
-  error?: Error,
-  context?: Record<string, unknown>
-) => {
+export const logError = (message: string, error?: Error, context?: Record<string, unknown>) => {
   logger.error(message, {
     ...context,
     error: error

@@ -12,14 +12,23 @@
     "build": "turbo build",
     "lint": "turbo lint",
     "test": "turbo test",
-    "clean": "turbo clean && rm -rf node_modules"
+    "clean": "turbo clean && rm -rf node_modules",
+    "seed:sources": "tsx scripts/etl/seed-sources.ts",
+    "ingest:rss": "tsx scripts/etl/fetch-articles.ts"
   },
   "devDependencies": {
+    "@types/mjml": "^4.7.4",
+    "@types/node-cron": "^3.0.11",
+    "@types/nodemailer": "^7.0.3",
+    "tsx": "^4.20.6",
     "turbo": "^2.0.0"
   },
   "engines": {
     "node": ">=20.0.0",
     "npm": ">=10.0.0"
   },
-  "packageManager": "npm@10.8.1"
+  "packageManager": "npm@10.8.1",
+  "dependencies": {
+    "dotenv": "^17.2.3"
+  }
 }

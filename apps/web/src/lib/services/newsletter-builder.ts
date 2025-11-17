@@ -22,9 +22,7 @@ export interface NewsletterResult {
 /**
  * Build and send daily newsletter
  */
-export async function buildAndSendNewsletter(
-  db: PrismaClient = prisma
-): Promise<NewsletterResult> {
+export async function buildAndSendNewsletter(db: PrismaClient = prisma): Promise<NewsletterResult> {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -201,9 +199,7 @@ export async function buildAndSendNewsletter(
 /**
  * Generate market overview text based on articles
  */
-function generateMarketOverview(
-  articles: (Article & { source: Source })[]
-): string {
+function generateMarketOverview(articles: (Article & { source: Source })[]): string {
   // Simple rule-based overview
   const topics = new Set<string>();
 

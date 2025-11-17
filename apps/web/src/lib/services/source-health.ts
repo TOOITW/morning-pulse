@@ -20,10 +20,7 @@ export interface HealthMetrics {
  * Track a successful fetch from a source
  * Resets consecutive failures and marks source as active
  */
-export async function trackSuccess(
-  sourceId: string,
-  db: PrismaClient = prisma
-): Promise<Source> {
+export async function trackSuccess(sourceId: string, db: PrismaClient = prisma): Promise<Source> {
   return await db.source.update({
     where: { id: sourceId },
     data: {
@@ -101,9 +98,7 @@ export async function getHealthStatus(
 /**
  * Get all degraded or inactive sources
  */
-export async function getDegradedSources(
-  db: PrismaClient = prisma
-): Promise<Source[]> {
+export async function getDegradedSources(db: PrismaClient = prisma): Promise<Source[]> {
   return await db.source.findMany({
     where: {
       status: {
@@ -135,10 +130,7 @@ export async function markInactive(
 /**
  * Reset health metrics for a source (e.g., after manual intervention)
  */
-export async function resetHealth(
-  sourceId: string,
-  db: PrismaClient = prisma
-): Promise<Source> {
+export async function resetHealth(sourceId: string, db: PrismaClient = prisma): Promise<Source> {
   return await db.source.update({
     where: { id: sourceId },
     data: {

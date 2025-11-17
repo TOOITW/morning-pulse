@@ -7,12 +7,7 @@ import { PrismaClient, Job, Prisma } from '@prisma/client';
 import prisma from '../db/client';
 import { logInfo, logError, logWarn } from '../observability/logger';
 
-export type JobType =
-  | 'deduplication'
-  | 'summarization'
-  | 'ner'
-  | 'email_render'
-  | 'email_send';
+export type JobType = 'deduplication' | 'summarization' | 'ner' | 'email_render' | 'email_send';
 
 export type JobStatus = 'pending' | 'processing' | 'completed' | 'failed';
 
@@ -57,9 +52,7 @@ export async function enqueueJob(
  * Dequeue the next available job
  * Returns null if no jobs are available
  */
-export async function dequeueJob(
-  db: PrismaClient = prisma
-): Promise<Job | null> {
+export async function dequeueJob(db: PrismaClient = prisma): Promise<Job | null> {
   const now = new Date();
 
   // Find the next pending job that is due
@@ -145,17 +138,13 @@ export async function failJob(
 
   const shouldRetry = job.attempts < job.maxAttempts;
 
-  logError(
-    shouldRetry ? 'Job failed, will retry' : 'Job failed permanently',
-    undefined,
-    {
-      jobId,
-      type: job.type,
-      attempts: job.attempts,
-      maxAttempts: job.maxAttempts,
-      error,
-    }
-  );
+  logError(shouldRetry ? 'Job failed, will retry' : 'Job failed permanently', undefined, {
+    jobId,
+    type: job.type,
+    attempts: job.attempts,
+    maxAttempts: job.maxAttempts,
+    error,
+  });
 
   if (shouldRetry) {
     // Reschedule with exponential backoff (1min, 2min, 4min, ...)
@@ -185,9 +174,7 @@ export async function failJob(
 /**
  * Get job statistics
  */
-export async function getJobStats(
-  db: PrismaClient = prisma
-): Promise<Record<JobStatus, number>> {
+export async function getJobStats(db: PrismaClient = prisma): Promise<Record<JobStatus, number>> {
   const stats = await db.job.groupBy({
     by: ['status'],
     _count: {

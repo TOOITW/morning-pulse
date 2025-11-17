@@ -46,7 +46,7 @@ function isRetryableError(error: unknown, retryableStatuses: number[]): boolean 
   if (error instanceof Response) {
     return retryableStatuses.includes(error.status);
   }
-  
+
   if (error instanceof Error) {
     // Network errors
     const message = error.message.toLowerCase();
@@ -57,7 +57,7 @@ function isRetryableError(error: unknown, retryableStatuses: number[]): boolean 
       message.includes('enotfound')
     );
   }
-  
+
   return false;
 }
 

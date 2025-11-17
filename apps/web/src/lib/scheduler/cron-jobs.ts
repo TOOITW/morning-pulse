@@ -64,14 +64,8 @@ export function scheduleRSSIngestion() {
     try {
       const results = await ingestAllSources();
 
-      const totalCreated = results.reduce(
-        (sum, r) => sum + r.articlesCreated,
-        0
-      );
-      const totalDuplicate = results.reduce(
-        (sum, r) => sum + r.articlesDuplicate,
-        0
-      );
+      const totalCreated = results.reduce((sum, r) => sum + r.articlesCreated, 0);
+      const totalDuplicate = results.reduce((sum, r) => sum + r.articlesDuplicate, 0);
 
       logInfo('RSS ingestion completed', {
         sourcesProcessed: results.length,

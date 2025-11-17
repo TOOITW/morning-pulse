@@ -88,9 +88,7 @@ export async function ingestSource(
         }
 
         // Parse publish date
-        const publishedAt = item.pubDate
-          ? new Date(item.pubDate)
-          : new Date();
+        const publishedAt = item.pubDate ? new Date(item.pubDate) : new Date();
 
         // Create article
         await db.article.create({
@@ -158,9 +156,7 @@ export async function ingestSource(
 /**
  * Ingest articles from all active RSS sources
  */
-export async function ingestAllSources(
-  db: PrismaClient = prisma
-): Promise<IngestResult[]> {
+export async function ingestAllSources(db: PrismaClient = prisma): Promise<IngestResult[]> {
   logInfo('Starting ingestion for all active sources');
 
   // Fetch all active RSS sources
@@ -185,10 +181,7 @@ export async function ingestAllSources(
 
   // Summary
   const totalCreated = results.reduce((sum, r) => sum + r.articlesCreated, 0);
-  const totalDuplicate = results.reduce(
-    (sum, r) => sum + r.articlesDuplicate,
-    0
-  );
+  const totalDuplicate = results.reduce((sum, r) => sum + r.articlesDuplicate, 0);
   const totalErrors = results.reduce((sum, r) => sum + r.errors.length, 0);
 
   logInfo('All sources ingestion completed', {
@@ -204,9 +197,7 @@ export async function ingestAllSources(
 /**
  * Get sources that need ingestion (based on TTL)
  */
-export async function getSourcesDueForIngestion(
-  db: PrismaClient = prisma
-): Promise<Source[]> {
+export async function getSourcesDueForIngestion(db: PrismaClient = prisma): Promise<Source[]> {
   const now = new Date();
 
   const sources = await db.source.findMany({

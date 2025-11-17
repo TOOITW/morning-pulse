@@ -51,10 +51,7 @@ function calculateTrustScore(source: Source): number {
  * Calculate relevance score (0-1)
  * Based on match with user's watchlist
  */
-function calculateRelevanceScore(
-  article: Article,
-  watchlist?: string[]
-): number {
+function calculateRelevanceScore(article: Article, watchlist?: string[]): number {
   if (!watchlist || watchlist.length === 0) {
     return 0.5; // Neutral score if no preferences
   }
@@ -62,9 +59,7 @@ function calculateRelevanceScore(
   // Extract symbols and topics from article
   const articleSymbols = (article.symbols as string[]) || [];
   const articleTopics = (article.topics as string[]) || [];
-  const articleItems = [...articleSymbols, ...articleTopics].map((s) =>
-    s.toLowerCase()
-  );
+  const articleItems = [...articleSymbols, ...articleTopics].map((s) => s.toLowerCase());
 
   // Count matches
   const watchlistLower = watchlist.map((w) => w.toLowerCase());
@@ -81,10 +76,10 @@ function calculateRelevanceScore(
 }
 
 /**
- * Calculate heat score (0-1)
+ * Heat Score (0-1)
  * Based on cluster size (how many outlets are covering the same story)
  */
-function calculateHeatScore(_article: Article & { source: Source }): number {
+function calculateHeatScore(): number {
   // TODO: Implement cluster size lookup from database
   // For now, return neutral score
   return 0.5;
@@ -109,14 +104,11 @@ export function scoreArticle(
   const recency = calculateRecencyScore(article.tsPublished);
   const trust = calculateTrustScore(article.source);
   const relevance = calculateRelevanceScore(article, userWatchlist);
-  const heat = calculateHeatScore(article);
+  const heat = calculateHeatScore();
 
   // Calculate weighted final score
   const score =
-    recency * recencyWeight +
-    trust * trustWeight +
-    relevance * relevanceWeight +
-    heat * heatWeight;
+    recency * recencyWeight + trust * trustWeight + relevance * relevanceWeight + heat * heatWeight;
 
   return {
     article,

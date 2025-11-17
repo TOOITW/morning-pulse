@@ -3,6 +3,7 @@
  * Run this script to populate the database with financial news sources
  */
 
+import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();

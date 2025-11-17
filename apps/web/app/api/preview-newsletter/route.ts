@@ -16,8 +16,7 @@ export async function GET(request: Request) {
     });
 
     const { html } = renderDailyNewsletter(articles, {
-      marketOverview:
-        '全球股市今日開高後震盪，美元指數走弱、黃金持穩。加密資產延續升勢。',
+      marketOverview: '全球股市今日開高後震盪，美元指數走弱、黃金持穩。加密資產延續升勢。',
     });
 
     if (format === 'html') {

@@ -1,0 +1,56 @@
+<mjml>
+  <mj-head>
+    <mj-attributes>
+      <mj-all font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Apple Color Emoji','Segoe UI Emoji'" />
+      <mj-text font-size="14px" line-height="1.6" />
+      <mj-section padding="0" />
+      <mj-column padding="0" />
+    </mj-attributes>
+    <mj-title>TravelPulse • {{ date }}</mj-title>
+    <mj-preview>Your Daily Travel Deals & Inspiration</mj-preview>
+  </mj-head>
+  <mj-body background-color="#F3F4F6">
+    <mj-section background-color="#111827" padding="24px 0">
+      <mj-column>
+        <mj-text align="center" color="#FFFFFF" font-size="28px" font-weight="700">TravelPulse</mj-text>
+        <mj-text align="center" color="#D1D5DB" font-size="14px">{{ date }} • Curated Travel Deals & Stories</mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section background-color="#FFFFFF" padding="24px">
+      <mj-column>
+        <mj-text font-size="20px" font-weight="700">🌍 Today’s Highlights</mj-text>
+        <mj-divider border-color="#E5E7EB" />
+        <mj-text>{{ marketOverview }}</mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section background-color="#FFFFFF" padding="24px">
+      <mj-column>
+        <mj-text font-size="20px" font-weight="700">🔥 Top Travel Picks</mj-text>
+        <mj-divider border-color="#E5E7EB" />
+
+        {{#each articles}}
+        <mj-section background-color="#F9FAFB" padding="16px" border-radius="8px">
+          <mj-column>
+            <mj-text color="#6B7280" font-size="12px" font-weight="700">{{ this.sourceName }}</mj-text>
+            <mj-text font-size="16px" font-weight="700">{{ this.title }}</mj-text>
+            <mj-text>{{ this.summary }}</mj-text>
+            <mj-text color="#6B7280" font-size="12px">{{ this.publishedTime }} • {{ this.author }}</mj-text>
+            <mj-button href="{{ this.url }}" background-color="#2563EB" color="#FFFFFF" border-radius="6px" padding="8px 0">Read Full Story →</mj-button>
+          </mj-column>
+        </mj-section>
+        {{/each}}
+      </mj-column>
+    </mj-section>
+
+    <mj-section background-color="#F3F4F6" padding="24px">
+      <mj-column>
+        <mj-text align="center" color="#6B7280" font-size="12px">
+          Manage preferences: <a href="{{ preferencesUrl }}">link</a> • Unsubscribe: <a href="{{ unsubscribeUrl }}">link</a>
+        </mj-text>
+        <mj-text align="center" color="#9CA3AF" font-size="12px">© {{ year }} TravelPulse. All rights reserved.</mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

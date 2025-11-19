@@ -32,17 +32,29 @@ export interface NewsletterData {
  * Load MJML template from file
  */
 function loadTemplate(templateName: string): string {
-  const templatePath = join(process.cwd(), 'src/lib/email/templates', `${templateName}.mjml`);
+  // Support both execution contexts:
+  // 1) From repo root (ops scripts): apps/web/src/lib/email/templates
+  // 2) From apps/web (Next.js dev/server): src/lib/email/templates
+  const candidates = [
+    join(process.cwd(), 'apps/web/src/lib/email/templates', `${templateName}.mjml`),
+    join(process.cwd(), 'src/lib/email/templates', `${templateName}.mjml`),
+  ];
 
-  try {
-    return readFileSync(templatePath, 'utf-8');
-  } catch (error) {
-    logError('Failed to load email template', error as Error, {
-      templateName,
-      templatePath,
-    });
-    throw error;
+  for (const templatePath of candidates) {
+    try {
+      return readFileSync(templatePath, 'utf-8');
+    } catch {
+      // try next candidate
+    }
   }
+
+  const lastPath = candidates[candidates.length - 1];
+  const error = new Error(`Template not found in candidates. Last tried: ${lastPath}`);
+  logError('Failed to load email template', error as Error, {
+    templateName,
+    candidates,
+  });
+  throw error;
 }
 
 /**
@@ -55,13 +67,15 @@ function renderTemplate(template: string, data: NewsletterData): string {
   (Object.keys(data) as (keyof NewsletterData)[]).forEach((key) => {
     if (key !== 'articles') {
       const value = data[key];
-      const regex = new RegExp(`{{${String(key)}}}`, 'g');
+      // Support optional whitespace inside mustache tags, e.g. {{ key }}
+      const regex = new RegExp(`{{\\s*${String(key)}\\s*}}`, 'g');
       rendered = rendered.replace(regex, String(value));
     }
   });
 
   // Handle articles array {{#each articles}}...{{/each}}
-  const articlesMatch = rendered.match(/{{#each articles}}([\s\S]*?){{\/each}}/);
+  // Allow whitespace around control tokens
+  const articlesMatch = rendered.match(/{{\s*#each\s+articles\s*}}([\s\S]*?){{\s*\/each\s*}}/);
 
   if (articlesMatch) {
     const articleTemplate = articlesMatch[1];
@@ -74,7 +88,8 @@ function renderTemplate(template: string, data: NewsletterData): string {
         // Replace article properties
         (Object.keys(article) as (keyof ArticleForEmail)[]).forEach((key) => {
           const value = article[key] ?? '';
-          const regex = new RegExp(`{{this\\.${String(key)}}}`, 'g');
+          // Support optional whitespace: {{ this.key }}
+          const regex = new RegExp(`{{\\s*this\\.${String(key)}\\s*}}`, 'g');
           articleHtml = articleHtml.replace(regex, String(value));
         });
 
@@ -126,9 +141,10 @@ export function renderDailyNewsletter(
   options: {
     marketOverview?: string;
     userId?: string;
+    templateName?: string; // default: 'daily-newsletter'
   } = {}
 ): { html: string; text: string } {
-  const { marketOverview, userId } = options;
+  const { marketOverview, userId, templateName = 'daily-newsletter' } = options;
 
   logInfo('Rendering daily newsletter', {
     articleCount: articles.length,
@@ -157,8 +173,8 @@ export function renderDailyNewsletter(
     year: now.getFullYear().toString(),
   };
 
-  // Load and render template
-  const mjmlTemplate = loadTemplate('daily-newsletter');
+  // Load and render template (support custom theme)
+  const mjmlTemplate = loadTemplate(templateName);
   const renderedMjml = renderTemplate(mjmlTemplate, data);
 
   // Compile MJML to HTML

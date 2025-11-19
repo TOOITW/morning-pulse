@@ -12,6 +12,7 @@ spacy = "^3.7.0"
 datasketch = "^1.6.0"
 psycopg2-binary = "^2.9.0"
 structlog = "^24.1.0"
+python-dotenv = "^1.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"

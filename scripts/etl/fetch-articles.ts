@@ -6,7 +6,7 @@
 import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 import { rssAdapter } from '../../apps/web/src/lib/ingest/rss-adapter';
-import { upsertArticle } from '../../apps/web/src/lib/db/repositories/articles';
+import { batchUpsertArticles } from '../../apps/web/src/lib/db/repositories/articles';
 
 const prisma = new PrismaClient();
 
@@ -17,25 +17,20 @@ async function ingestOneSource(sourceId: string) {
   const start = Date.now();
   try {
     const res = await rssAdapter.fetchFeed(source.url, { useCache: true, timeout: 15000 });
-    let inserted = 0;
-    for (const item of res.items) {
-      try {
-        await upsertArticle({
-          sourceId: source.id,
-          guid: item.guid || undefined,
-          canonicalUrl: item.link || undefined,
-          title: item.title || '(no title)',
-          publishedAt: item.pubDate ? new Date(item.pubDate) : undefined,
-          contentSnippet: item.contentSnippet || null,
-          contentRaw: item.content || null,
-        });
-        inserted++;
-      } catch (e) {
-        // Swallow per-item errors but continue
-        // eslint-disable-next-line no-console
-        console.warn(`[ingest] upsert failed for ${item.link || item.guid}:`, (e as Error).message);
-      }
-    }
+    const inputs = res.items
+      .filter((i) => i.link && i.title)
+      .map((item) => ({
+        sourceId: source.id,
+        guid: item.guid || undefined,
+        canonicalUrl: item.link || undefined,
+        title: item.title || '(no title)',
+        publishedAt: item.pubDate ? new Date(item.pubDate) : undefined,
+        contentSnippet: item.contentSnippet || null,
+        contentRaw: item.content || null,
+      }));
+
+    const { created, duplicates } = await batchUpsertArticles(inputs, prisma);
+    const inserted = created;
 
     await prisma.source.update({
       where: { id: source.id },

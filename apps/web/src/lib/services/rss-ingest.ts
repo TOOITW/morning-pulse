@@ -7,9 +7,10 @@ import { PrismaClient, Source } from '@prisma/client';
 import prisma from '../db/client';
 import { rssAdapter } from '../ingest/rss-adapter';
 import { normalizeUrl } from '../utils/url';
-import { generateContentHash } from '../utils/hash';
+// import { generateContentHash } from '../utils/hash';
 import { trackSuccess, trackFailure } from './source-health';
 import { logInfo, logError } from '../observability/logger';
+import { batchUpsertArticles } from '../db/repositories/articles';
 
 export interface IngestResult {
   sourceId: string;
@@ -61,70 +62,38 @@ export async function ingestSource(
       itemCount: feedResult.items.length,
     });
 
-    // Process each article
-    for (const item of feedResult.items) {
-      try {
-        result.articlesProcessed++;
+    // Build batch inputs and use repository batch upsert for performance
+    result.articlesProcessed = feedResult.items.length;
 
-        // Validate required fields
-        if (!item.link || !item.title) {
-          result.errors.push(`Missing link or title: ${item.guid}`);
-          continue;
-        }
-
-        // Normalize URL
-        const canonicalUrl = await normalizeUrl(item.link);
-        const contentHash = generateContentHash(canonicalUrl, item.title);
-
-        // Check if article already exists
-        const existing = await db.article.findUnique({
-          where: { contentHash },
-          select: { id: true },
-        });
-
-        if (existing) {
-          result.articlesDuplicate++;
-          continue;
-        }
-
-        // Parse publish date
-        const publishedAt = item.pubDate ? new Date(item.pubDate) : new Date();
-
-        // Create article
-        await db.article.create({
-          data: {
+    // Normalize URLs in parallel (best-effort, tolerate failures)
+    const inputs = await Promise.all(
+      feedResult.items.map(async (item) => {
+        try {
+          if (!item.link || !item.title) return null;
+          const canonicalUrl = await normalizeUrl(item.link);
+          const publishedAt = item.pubDate ? new Date(item.pubDate) : new Date();
+          return {
             sourceId: source.id,
-            guid: item.guid || item.link, // Use link as fallback GUID
-            title: item.title.trim(),
+            guid: item.guid || item.link || null,
             canonicalUrl,
-            contentHash,
-            summaryRaw: item.contentSnippet?.trim() || null,
-            content: item.content?.trim() || null,
-            author: item.creator?.trim() || null,
-            tsPublished: publishedAt,
-            // NLP fields will be populated by workers
-            symbols: [],
-            topics: [],
-            entities: [],
-          },
-        });
+            title: item.title.trim(),
+            publishedAt,
+            contentSnippet: item.contentSnippet?.trim() || null,
+            contentRaw: item.content?.trim() || null,
+          };
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : String(e);
+          result.errors.push(`Normalize failed for ${item.guid || item.link}: ${msg}`);
+          return null;
+        }
+      })
+    );
 
-        result.articlesCreated++;
+    const validInputs = inputs.filter((i): i is NonNullable<typeof i> => !!i);
 
-        logInfo('Article created', {
-          sourceId: source.id,
-          title: item.title,
-          publishedAt: publishedAt.toISOString(),
-        });
-      } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : String(error);
-        result.errors.push(`Failed to process item ${item.guid}: ${errorMsg}`);
-        logError('Failed to process RSS item', error as Error, {
-          sourceId: source.id,
-          itemGuid: item.guid,
-        });
-      }
-    }
+    const upsertRes = await batchUpsertArticles(validInputs, db);
+    result.articlesCreated = upsertRes.created;
+    result.articlesDuplicate = upsertRes.duplicates;
 
     // Track success
     await trackSuccess(source.id, db);

@@ -48,16 +48,16 @@
 - [x] T011 Create Source model in apps/web/src/lib/db/models.ts with fields: id, name, type, url, trust_score, ttl_min, status — replaced by Prisma schema (apps/web/prisma/schema.prisma)
 - [x] T012 Create Article model in apps/web/src/lib/db/models.ts with fields: id, source_id, guid, canonical_url, content_hash, title, ts_published, summary_raw, symbols, topics, cluster_id — replaced by Prisma schema (apps/web/prisma/schema.prisma)
 - [x] T013 [P] Implement database connection helper in apps/web/src/lib/db/client.ts using Prisma — covered via PrismaClient usage (path differs)
-- [ ] T014 [P] Implement URL normalization utility in apps/web/src/lib/utils/url.ts (remove UTM params, follow redirects, extract canonical)
-- [ ] T015 [P] Implement content hash generator in apps/web/src/lib/utils/hash.ts (SHA256 of canonical URL + stripped title)
-- [ ] T016 Implement RSS adapter interface in apps/web/src/lib/ingest/rss-adapter.ts using rss-parser with ETag/Last-Modified support
-- [ ] T017 [P] Implement HTTP retry logic with exponential backoff in apps/web/src/lib/utils/retry.ts for 429/5xx errors
-- [ ] T018 [P] Create source health tracking service in apps/web/src/lib/services/source-health.ts (consecutive failure counter, degraded marking)
+- [x] T014 [P] Implement URL normalization utility in apps/web/src/lib/utils/url.ts (remove UTM params, follow redirects, extract canonical)
+- [x] T015 [P] Implement content hash generator in apps/web/src/lib/utils/hash.ts (SHA256 of canonical URL + stripped title)
+- [x] T016 Implement RSS adapter interface in apps/web/src/lib/ingest/rss-adapter.ts using rss-parser with ETag/Last-Modified support
+- [x] T017 [P] Implement HTTP retry logic with exponential backoff in apps/web/src/lib/utils/retry.ts for 429/5xx errors
+- [x] T018 [P] Create source health tracking service in apps/web/src/lib/services/source-health.ts (consecutive failure counter, degraded marking)
 - [x] T019 [P] Setup structured logging in apps/web/src/lib/observability/logger.ts with Winston/Pino (取代 OpenTelemetry)
 - [x] T020 [P] Setup structured logging in services/nlp-py/src/lib/logger.py with structlog
-- [ ] T021 [P] Implement simple job queue (SQLite-based) in apps/web/src/lib/queue/job-queue.ts (取代 SQS)
-- [ ] T022 [P] Implement job processor base class in services/nlp-py/src/lib/job_processor.py (取代 SQS consumer)
-- [ ] T023 [P] Setup PostgreSQL connection in services/nlp-py/src/lib/db.py using psycopg2 with connection pooling
+- [x] T021 [P] Implement simple job queue (SQLite-based) in apps/web/src/lib/queue/job-queue.ts (取代 SQS)
+- [x] T022 [P] Implement job processor base class in services/nlp-py/src/lib/job_processor.py (取代 SQS consumer)
+- [x] T023 [P] Setup PostgreSQL connection in services/nlp-py/src/lib/db.py using psycopg2 with connection pooling
 
 **Checkpoint**: Foundation ready - can fetch from one RSS source, store in DB with proper normalization and hashing
 
@@ -71,9 +71,9 @@
 
 ### Implementation for User Story 1
 
-- [ ] T024 [P] [US1] Implement RSS ingestion for 3 initial sources (Reuters, CNBC, Yahoo Finance) in apps/web/src/lib/ingest/sources/
-- [ ] T025 [US1] Create ETL CLI command in scripts/etl/fetch-articles.ts to manually trigger fetch for all active sources
-- [ ] T026 [US1] Implement batch article insertion with upsert logic in apps/web/src/lib/db/repositories/articles.ts (deduplication by content_hash)
+- [x] T024 [P] [US1] Implement RSS ingestion for 3 initial sources (Reuters, CNBC, Yahoo Finance) in apps/web/src/lib/ingest/sources/
+- [x] T025 [US1] Create ETL CLI command in scripts/etl/fetch-articles.ts to manually trigger fetch for all active sources
+- [x] T026 [US1] Implement batch article insertion with upsert logic in apps/web/src/lib/db/repositories/articles.ts (deduplication by content_hash)
 - [ ] T027 [P] [US1] Implement SimHash algorithm in services/nlp-py/src/workers/deduplicator.py using datasketch library
 - [ ] T028 [US1] Create clustering service in services/nlp-py/src/workers/deduplicator.py to group articles with similarity ≥0.85 within 48h window
 - [ ] T029 [US1] Implement representative article selection logic (longest content + highest trust score) in services/nlp-py/src/workers/deduplicator.py

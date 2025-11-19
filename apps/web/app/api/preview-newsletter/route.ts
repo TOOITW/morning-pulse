@@ -6,6 +6,7 @@ export const runtime = 'nodejs';
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const format = searchParams.get('format') || 'json';
+  const theme = searchParams.get('theme') || 'finance';
 
   try {
     // Pull recent articles with source relation for rendering
@@ -16,7 +17,11 @@ export async function GET(request: Request) {
     });
 
     const { html } = renderDailyNewsletter(articles, {
-      marketOverview: '全球股市今日開高後震盪，美元指數走弱、黃金持穩。加密資產延續升勢。',
+      marketOverview:
+        theme === 'travel'
+          ? '精選旅遊新聞與靈感：熱門目的地、優惠與路線靈感整理在這裡。'
+          : '全球股市今日開高後震盪，美元指數走弱、黃金持穩。加密資產延續升勢。',
+      templateName: theme === 'travel' ? 'travel-newsletter' : 'daily-newsletter',
     });
 
     if (format === 'html') {
@@ -31,6 +36,7 @@ export async function GET(request: Request) {
       htmlLength: html.length,
       articleCount: articles.length,
       previewQuery: '?format=html',
+      theme,
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error';
